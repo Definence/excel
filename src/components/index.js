@@ -12,12 +12,16 @@ class Excel extends React.Component {
     super(props)
     this.state = {
       data: props.data,
-      sortBy: undefined,
-      descending: false
+      sortBy: null,
+      descending: false,
+      edit: {
+        row: null,
+        cell: null
+      }
     }
   }
 
-  sort = (e) => {
+  _onSort = (e) => {
     const { data, sortBy } = this.state
     const column = e.target.cellIndex
     const descending = sortBy === column && !this.state.descending
@@ -36,12 +40,22 @@ class Excel extends React.Component {
     }))
   }
 
+  _onEdit = (e) => {
+    const { target } = e
+    this.setState(() => ({
+      edit: {
+        cell: target.cellIndex,
+        row: parseInt(target.getAttribute('rowindex'))
+      }
+    }))
+  }
+
   buildHeaders = () => {
     const { descending, sortBy } = this.state
     return this.props.headers.map((header, index) => {
       if (index === sortBy) header += descending ? '\u2191' : '\u2193'
       return (
-        <th onClick={this.sort} key={index} style={style.border}>
+        <th onClick={this._onSort} key={index} style={style.border}>
           { header }
         </th>
       )
@@ -50,10 +64,10 @@ class Excel extends React.Component {
 
   buildContent = () => {
     const { data } = this.state
-    return data.map((row, index) => (
-      <tr key={index} style={style.border}>
-        { row.map((cell, index) => (
-          <td key={index} style={style.border}>
+    return data.map((row, rowIndex) => (
+      <tr key={rowIndex} style={style.border}>
+        { row.map((cell, cellIndex) => (
+          <td rowindex={rowIndex} key={cellIndex} style={style.border}>
             { cell }
           </td>
         )) }
@@ -62,6 +76,7 @@ class Excel extends React.Component {
   }
 
   render() {
+    console.log(this.state)
     return (
       <Fragment>
         <h1>Excel</h1>
@@ -73,7 +88,7 @@ class Excel extends React.Component {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody onDoubleClick={this._onEdit}>
             { this.buildContent() }
           </tbody>
         </table>
